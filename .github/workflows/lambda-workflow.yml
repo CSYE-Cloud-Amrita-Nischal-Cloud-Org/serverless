@@ -3,7 +3,7 @@ name: Building Lambda function and storing it in s3
 
 # Controls when the workflow will run
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -50,9 +50,8 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       
       - name: Create S3 Bucket if Not Exists
-        env:
-          BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
         run: |
+          BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
           if aws s3api head-bucket --bucket $BUCKET_NAME 2>/dev/null; then
             echo "Bucket $BUCKET_NAME already exists."
           else
@@ -64,6 +63,7 @@ jobs:
 
       - name: Copying artifact to S3
         run: |
+          BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
           echo "Using bucket: $BUCKET_NAME"
           aws s3 cp lambda_function.zip s3://"$BUCKET_NAME"/lambda/lambda_function.zip
           echo "Zip file transferred to S3."
