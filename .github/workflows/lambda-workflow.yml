@@ -1,0 +1,70 @@
+# This workflow will build Lambda
+name: Building Lambda function and storing it in s3
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: 
+    - main
+
+jobs:
+  build:
+    name: Build Lambda
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      
+      - name: Install Dependencies
+        run: |
+          echo "Installing necessary tools..."
+          sudo apt-get update && sudo apt-get install -y zip
+          echo "Installing Node.js dependencies..."
+          npm install mailgun-js
+          npm install --omit=dev --include=optional
+
+      - name: Creating a zip file for lambda
+        run: |
+          echo "Creating zip for index.js"
+          zip -r lambda_function.zip index.js node_modules
+      
+      - name: Verify Zip File
+        run: |
+          if [ -f "lambda_function.zip" ]; then
+            echo "Zip file created successfully: lambda_function.zip"
+          else
+            echo "Error: Zip file not created."
+            exit 1
+          fi
+
+      - name: Configuring AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Create S3 Bucket if Not Exists
+        env:
+          BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+        run: |
+          if aws s3api head-bucket --bucket $BUCKET_NAME 2>/dev/null; then
+            echo "Bucket $BUCKET_NAME already exists."
+          else
+            echo "Creating bucket $BUCKET_NAME..."
+            aws s3api create-bucket --bucket $BUCKET_NAME --region $AWS_REGION \
+              --create-bucket-configuration LocationConstraint=$AWS_REGION
+            echo "Bucket $BUCKET_NAME created successfully."
+          fi
+
+      - name: Copying artifact to S3
+        run: |
+          echo "Using bucket: $BUCKET_NAME"
+          aws s3 cp lambda_function.zip s3://"$BUCKET_NAME"/lambda/lambda_function.zip
+          echo "Zip file transferred to S3."

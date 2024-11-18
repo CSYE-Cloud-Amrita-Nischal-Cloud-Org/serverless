@@ -1,0 +1,16 @@
+{
+  "name": "send-verification-email",
+  "version": "1.0.0",
+  "description": "This repository contains AWS Lambda functions written in Node.js to support email verification functionality for a webapp",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "form-data": "^4.0.1",
+    "mailgun.js": "^10.2.3"
+  }
+}
