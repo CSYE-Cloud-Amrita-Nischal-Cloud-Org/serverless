@@ -10,7 +10,7 @@ exports.handler = async (event) => {
     // Retrieve email credentials from Secrets Manager
     const secretData = await secretsManager
       .getSecretValue({
-        SecretId: process.env.EMAIL_CREDENTIALS_SECRET_ARN,
+        SecretId: process.env.MAILGUN_SECRET_ARN,
       })
       .promise();
     const credentials = JSON.parse(secretData.SecretString);
@@ -21,7 +21,7 @@ exports.handler = async (event) => {
       key: credentials.MAILGUN_API_KEY
     });
 
-    // Use the credentials to configure your email sending logic
+    // Use the credentials to configure your email service
     const DOMAIN = credentials.MAILGUN_DOMAIN;
     console.log("SNS Event Received:", JSON.stringify(event, null, 2));
     
