@@ -34,7 +34,7 @@ exports.handler = async (event) => {
     }
 
     // Create verification link
-    const verificationLink = `${credentials.APP_URL}/verify?token=${token}`;
+    const verificationLink = `https://${credentials.APP_URL}/verify?token=${token}`;
 
     console.log("Email verification details saved to the database.");
 
