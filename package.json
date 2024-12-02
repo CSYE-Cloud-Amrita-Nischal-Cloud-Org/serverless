@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1692.0",
     "form-data": "^4.0.1",
     "mailgun.js": "^10.2.3"
   }
