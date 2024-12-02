@@ -1,17 +1,28 @@
 const formData = require('form-data');
 const Mailgun = require('mailgun.js');
-
+const AWS = require('aws-sdk');
 const mailgun = new Mailgun(formData);
-const client = mailgun.client({
-  username: 'api',
-  key: process.env.MAILGUN_API_KEY
-});
+const secretsManager = new AWS.SecretsManager();
 
-// Initialize Mailgun
-const DOMAIN = process.env.MAILGUN_DOMAIN;
 
 exports.handler = async (event) => {
   try {
+    // Retrieve email credentials from Secrets Manager
+    const secretData = await secretsManager
+      .getSecretValue({
+        SecretId: process.env.EMAIL_CREDENTIALS_SECRET_ARN,
+      })
+      .promise();
+    const credentials = JSON.parse(secretData.SecretString);
+    console.log("Secrets Fetched: ", credentials);
+
+    const client = mailgun.client({
+      username: 'api',
+      key: credentials.MAILGUN_API_KEY
+    });
+
+    // Use the credentials to configure your email sending logic
+    const DOMAIN = credentials.MAILGUN_DOMAIN;
     console.log("SNS Event Received:", JSON.stringify(event, null, 2));
     
     // Parse SNS message
@@ -23,7 +34,7 @@ exports.handler = async (event) => {
     }
 
     // Create verification link
-    const verificationLink = `${process.env.APP_URL}/verify?token=${token}`;
+    const verificationLink = `${credentials.APP_URL}/verify?token=${token}`;
 
     console.log("Email verification details saved to the database.");
 
